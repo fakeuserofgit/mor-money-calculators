@@ -1,0 +1,992 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mor Money - Financial Calculators</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --purple-bg: #43215D;
+  --yellow-text: #F2B827;
+  --card-bg: #ffffff;
+  --text-dark: #111827;
+  --text-muted: #6b7280; 
+  --grey-bg: #F6F6F6; 
+  --primary-purple: #43215D;
+  --accent-green: #24B5AE; 
+  --emergency: #24B5AE;
+  --liquidity: #153B5B;
+  --future: #6c5ce7;
+  --dream: #D9A441;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+body { 
+  margin: 0; 
+  font-family: 'Montserrat', sans-serif; 
+  background: var(--purple-bg); 
+  color: var(--text-dark);
+  overflow-x: hidden; 
+  overflow-y: auto; 
+  min-height: 100vh; 
+  display: flex;
+  flex-direction: column;
+  line-height: 1.8; 
+}
+
+.header-container {
+  max-width: 1500px; 
+  width: 96vw;
+  margin: 0 auto;
+  /* Added 100px padding to the bottom of the header */
+  padding: 48px 24px 100px 24px; 
+  text-align: left;
+}
+
+.header h1 {
+  /* Uses vw on desktop, falls back to min 32px on mobile, caps at 56px */
+  font-size: clamp(32px, 4vw, 56px); 
+  margin: 0;
+  font-weight: 600;
+  color: #fff;
+  position: relative;
+  z-index: 1;
+  display: inline-block;
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+}
+
+.header h1::before {
+  content: '';
+  position: absolute;
+  width: clamp(50px, 6vw, 90px);
+  height: clamp(50px, 6vw, 90px);
+  background-color: rgba(255, 255, 255, 0.12); 
+  border-radius: 50%;
+  top: 50%;
+  left: -20px;
+  transform: translateY(-50%);
+  z-index: -1;
+}
+
+.header h1 span { color: var(--yellow-text); }
+
+.header h2 {
+  color: #fff;
+  font-size: clamp(24px, 2.5vw, 32px);
+  margin: 48px 0 0 0;
+  border-bottom: 2px solid rgba(255,255,255,0.15);
+  padding-bottom: 16px;
+  font-weight: 600;
+}
+
+.wrapper { 
+  max-width: 1500px; 
+  width: 96vw;
+  margin: 0 auto 48px auto; 
+  display: grid; 
+  grid-template-columns: clamp(300px, 25vw, 380px) 1fr; 
+  gap: 40px; 
+  padding: 0 24px;
+  align-items: stretch; 
+}
+
+.secondary-wrapper {
+  grid-template-columns: 1fr 1fr; 
+  align-items: start;
+  margin-top: 16px;
+}
+
+/* Panel Styles */
+.panel { 
+  background: var(--card-bg); 
+  border-radius: 16px; 
+  padding: clamp(24px, 3vw, 40px); 
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15); 
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.panel h3 {
+  color: var(--primary-purple);
+  margin-top: 0;
+  font-size: clamp(18px, 1.8vw, 24px);
+  font-weight: 600;
+  border-bottom: 2px solid var(--grey-bg);
+  padding-bottom: 16px;
+  margin-bottom: 32px;
+}
+
+/* Left Panel - Inputs */
+.input-header {
+  border-left: 4px solid var(--yellow-text);
+  padding-left: 16px;
+  margin-bottom: 32px;
+}
+.input-header p {
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-dark);
+}
+
+.header-divider {
+  border: none;
+  border-top: 2px dashed var(--grey-bg);
+  margin: 0 0 32px 0;
+}
+
+.inputs-container {
+  display: flex;
+  flex-direction: column;
+  gap: 32px; 
+}
+
+.slider-group { 
+  display: flex; 
+  flex-direction: column; 
+  width: 100%; 
+}
+.slider-label { 
+  font-size: 13px; 
+  color: var(--text-muted);
+  font-weight: 500; 
+  margin-bottom: 8px;
+}
+.slider-value {
+  font-weight: 600; 
+  font-size: clamp(16px, 1.5vw, 18px);
+  color: var(--primary-purple); 
+  margin-bottom: 16px;
+}
+input[type=range] {
+  width: 100%;
+  appearance: none;
+  height: 6px;
+  border-radius: 4px;
+  outline: none;
+  background: var(--grey-bg); 
+}
+input[type=range]::-webkit-slider-thumb {
+  appearance: none;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: var(--primary-purple);
+  cursor: pointer;
+  border: 2px solid #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+}
+.row-sliders {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 32px; 
+}
+
+/* Right Panel - Outputs */
+.invest-label {
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.invest-label span.bold-val {
+  color: var(--text-dark);
+  font-weight: 600;
+  font-size: clamp(14px, 1.2vw, 16px);
+}
+.invest-label::before {
+  content: '';
+  display: block;
+  width: 10px;
+  height: 10px;
+  background: var(--primary-purple);
+  border-radius: 50%;
+}
+
+.exact-val {
+  font-size: clamp(11px, 1vw, 12px);
+  font-weight: 500;
+  color: var(--text-muted);
+  margin-left: 6px;
+  display: inline-block;
+  white-space: normal; /* Prevent spill */
+  word-wrap: break-word;
+}
+
+.hero-card { 
+  background-color: #FBF4FF;
+  background-image: url('Rectangle 553.png');
+  background-position: right center;
+  background-repeat: no-repeat;
+  background-size: contain; 
+  border-radius: 12px; 
+  padding: clamp(20px, 2.5vw, 32px) clamp(24px, 3vw, 40px); 
+  margin-bottom: 40px;
+  border-left: 6px solid var(--primary-purple);
+}
+.hero-title { 
+  font-size: clamp(12px, 1.2vw, 14px); 
+  color: var(--text-dark); 
+  font-weight: 500;
+}
+.hero-value { 
+  font-size: clamp(32px, 3.5vw, 46px); 
+  font-weight: 600; 
+  color: var(--primary-purple); 
+  margin: 8px 0 20px 0; 
+  letter-spacing: -0.5px;
+  line-height: 1.2;
+  word-wrap: break-word;
+}
+
+.stats-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  border-top: 2px solid var(--grey-bg);
+  padding-top: 24px;
+}
+.stats-row.two-col { grid-template-columns: repeat(2, 1fr); border: none; padding: 0; }
+
+.stat-box { 
+  display: flex; 
+  flex-direction: column; 
+  min-width: 0; /* Critical for preventing flex spill */
+}
+.stat-label {
+  font-size: 13px;
+  color: var(--text-dark);
+  margin-bottom: 8px;
+  font-weight: 500;
+  line-height: 1.3;
+}
+.stat-val {
+  font-size: clamp(16px, 1.6vw, 20px);
+  font-weight: 600;
+  color: var(--text-dark);
+  word-wrap: break-word; /* Prevent Spill */
+  white-space: normal; /* Prevent Spill */
+}
+.stat-val.purple-text { color: var(--primary-purple); }
+.stat-val.green { color: var(--accent-green); }
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1.9fr; 
+  gap: 40px;
+  align-items: stretch;
+  flex-grow: 1;
+}
+
+/* Secondary Calculator Grid */
+.secondary-outputs {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 32px;
+  margin-top: 32px;
+  align-items: center;
+}
+
+/* Pie Chart Card */
+.pie-card {
+  background: var(--card-bg); 
+  border: 2px solid var(--grey-bg); 
+  border-radius: 16px;
+  padding: clamp(20px, 2vw, 32px);
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.chart-title-box {
+  font-size: 13px; 
+  font-weight: 500; 
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+.chart-title-val {
+  font-size: clamp(20px, 2vw, 28px); 
+  color: var(--primary-purple);
+  font-weight: 600;
+  display: block;
+  margin-top: 8px;
+}
+.chart-container { 
+  flex-grow: 1;
+  position: relative; 
+  width: 100%;
+  min-height: 220px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.small-chart { min-height: 200px; }
+
+/* Legend for Secondary Charts */
+.chart-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 24px;
+}
+.legend-item {
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-dark);
+}
+.legend-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  margin-right: 12px;
+}
+
+/* Blocks and Tree Layout */
+.blocks-and-tree {
+  background-color: var(--card-bg); 
+  border: 2px solid var(--grey-bg);
+  border-radius: 16px;
+  padding: clamp(20px, 2.5vw, 32px);
+  position: relative;
+  overflow: hidden; 
+  display: flex;
+  align-items: stretch;
+}
+
+.blocks-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between; 
+  width: 55%; 
+  position: relative;
+  z-index: 2;
+  gap: 16px;
+}
+
+.tree-bg {
+  position: absolute;
+  right: -10px;
+  bottom: 0;
+  height: 105%; 
+  z-index: 1;
+  object-fit: contain;
+  object-position: right bottom;
+  pointer-events: none;
+}
+
+.block-card {
+  display: flex;
+  align-items: center;
+  padding: 16px clamp(12px, 1.5vw, 20px);
+  background: var(--grey-bg); 
+  border-radius: 12px;
+  border-left: 6px solid;
+  min-width: 0; /* Critical for flex wrap */
+}
+.block-card.emg { border-left-color: var(--emergency); }
+.block-card.liq { border-left-color: var(--liquidity); }
+.block-card.fut { border-left-color: var(--future); }
+.block-card.drm { border-left-color: var(--dream); }
+
+.block-img {
+  width: clamp(36px, 3.5vw, 48px);
+  height: clamp(36px, 3.5vw, 48px);
+  object-fit: contain;
+  margin-right: clamp(12px, 1.5vw, 20px);
+  flex-shrink: 0;
+}
+
+.block-info {
+  flex: 1;
+  min-width: 0; /* Prevents text from spilling out of container */
+}
+
+.block-title {
+  font-size: clamp(11px, 1vw, 13px);
+  color: var(--text-muted);
+  font-weight: 500;
+  margin-bottom: 4px;
+  word-wrap: break-word; /* Allows long exact values to wrap */
+  white-space: normal; /* Fixes spill */
+  line-height: 1.3;
+}
+.block-title span.pct-green {
+  color: var(--accent-green);
+  font-weight: 600;
+  display: inline-block;
+}
+.block-amt {
+  font-size: clamp(18px, 1.8vw, 22px); 
+  font-weight: 600;
+  color: var(--primary-purple);
+  word-wrap: break-word; /* Prevents long numbers from spilling */
+  white-space: normal; /* Fixes spill */
+  line-height: 1.2;
+}
+
+.info-note {
+  background: #fff;
+  border: 2px solid var(--grey-bg);
+  border-radius: 12px;
+  padding: 24px;
+  font-size: 14px;
+  color: var(--text-muted);
+  margin-top: 32px;
+  line-height: 1.8;
+  font-weight: 500;
+}
+
+/* Responsiveness */
+@media(max-width: 1024px) { 
+  .wrapper { grid-template-columns: 1fr; }
+  .secondary-wrapper { grid-template-columns: 1fr; }
+  .bottom-grid { grid-template-columns: 1fr; }
+  .blocks-and-tree { min-height: 500px; }
+  .blocks-container { width: 100%; }
+  .secondary-outputs { grid-template-columns: 1fr; }
+}
+
+@media(max-width: 768px) {
+  .header-container { padding: 32px 24px 80px 24px; }
+  .panel { padding: 24px; }
+  .wrapper { gap: 24px; padding: 0 16px; margin-bottom: 32px; }
+  .hero-card { padding: 20px; }
+  .row-sliders { grid-template-columns: 1fr; gap: 28px; }
+  .stats-row { grid-template-columns: 1fr; gap: 20px; }
+  .stats-row.two-col { grid-template-columns: 1fr; }
+  .tree-bg { opacity: 0.2; }
+}
+</style>
+</head>
+<body>
+
+<div class="header-container">
+  <div class="header">
+    <h1>4 Financial Building Blocks <span>Calculator</span></h1>
+  </div>
+</div>
+
+<div class="wrapper">
+  <!-- Left Panel - Main Inputs -->
+  <div class="panel">
+    <div class="input-header">
+      <p>Align your savings with Mor Money's proven framework for living today and securing tomorrow.</p>
+    </div>
+    <hr class="header-divider">
+    
+    <div class="inputs-container">
+      <div class="slider-group">
+        <div class="slider-label">Your monthly expenses</div>
+        <div class="slider-value">₹<span id="expv"></span></div>
+        <input id="exp" class="main-slider" type="range" min="10000" max="1000000" step="5000" value="30000">
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">Monthly savings (SIP)</div>
+        <div class="slider-value">₹<span id="sipv"></span></div>
+        <input id="sip" class="main-slider" type="range" min="500" max="500000" step="500" value="5000">
+      </div>
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Current age</div>
+          <div class="slider-value"><span id="agev"></span> yrs</div>
+          <input id="age" class="main-slider" type="range" min="18" max="70" value="24">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Plan till age</div>
+          <div class="slider-value"><span id="retv"></span> yrs</div>
+          <input id="ret" class="main-slider" type="range" min="40" max="100" value="60">
+        </div>
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">Lumpsum (onetime) investment</div>
+        <div class="slider-value">₹<span id="lumpv"></span></div>
+        <input id="lump" class="main-slider" type="range" min="0" max="10000000" step="50000" value="300000">
+      </div>
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Annual SIP increase</div>
+          <div class="slider-value"><span id="stepv"></span>%</div>
+          <input id="step" class="main-slider" type="range" min="0" max="20" step="1" value="10">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Expected inflation</div>
+          <div class="slider-value"><span id="inflv"></span>%</div>
+          <input id="infl" class="main-slider" type="range" min="3" max="12" step="0.5" value="7">
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Right Panel - Main Outputs -->
+  <div class="panel">
+    <div class="invest-label">You invest : <span class="bold-val" id="totalInvestedTxt"></span> <span id="investExact" class="exact-val"></span></div>
+    <div class="hero-card">
+      <div class="hero-title">Value of your wealth after <span id="yearsTxt"></span> years at the age <span id="retAgeTxt"></span> (at <span id="inflTxt"></span>% inflation per annum) <span id="realWealthExact" class="exact-val"></span></div>
+      <div class="hero-value" id="realWealth"></div>
+      <div class="stats-row">
+        <div class="stat-box">
+          <div class="stat-label">Your original wealth <span id="nomWealthExact" class="exact-val"></span></div>
+          <div class="stat-val purple-text" id="nominalWealth"></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Total return <span id="totalReturnExact" class="exact-val"></span></div>
+          <div class="stat-val green" id="totalReturn"></div>
+        </div>
+        <div class="stat-box">
+          <div class="stat-label">Compound rate</div>
+          <div class="stat-val green" id="compoundRate"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="bottom-grid">
+      <div class="pie-card">
+        <div class="chart-title-box">Your original wealth <span id="chartNomExact" class="exact-val"></span></div>
+        <div class="chart-title-val" id="chartTitleVal"></div>
+        <div class="chart-container"><canvas id="pie"></canvas></div>
+      </div>
+      <div class="blocks-and-tree">
+        <div class="blocks-container">
+          <div class="block-card emg">
+            <img src="Group 48096877.png" alt="Emergency money" class="block-img">
+            <div class="block-info">
+              <div class="block-title">Emergency money <span class="pct-green">(+5.5%)</span> <span id="emgExact" class="exact-val"></span></div>
+              <div class="block-amt" id="emgAmt"></div>
+            </div>
+          </div>
+          <div class="block-card liq">
+            <img src="Group 48096880.png" alt="Liquidity buffer" class="block-img">
+            <div class="block-info">
+              <div class="block-title">Liquidity buffer <span class="pct-green">(+7%)</span> <span id="liqExact" class="exact-val"></span></div>
+              <div class="block-amt" id="liqAmt"></div>
+            </div>
+          </div>
+          <div class="block-card fut">
+            <img src="Group 48096882.png" alt="Future money" class="block-img">
+            <div class="block-info">
+              <div class="block-title">Future money <span class="pct-green">(+12%)</span> <span id="futExact" class="exact-val"></span></div>
+              <div class="block-amt" id="futAmt"></div>
+            </div>
+          </div>
+          <div class="block-card drm">
+            <img src="Group 48096884.png" alt="Dream money" class="block-img">
+            <div class="block-info">
+              <div class="block-title">Dream money <span class="pct-green">(+9%)</span> <span id="drmExact" class="exact-val"></span></div>
+              <div class="block-amt" id="drmAmt"></div>
+            </div>
+          </div>
+        </div>
+        <img src="Object.png" alt="Growth Tree" class="tree-bg">
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="header-container" style="padding-top: 20px;">
+  <div class="header"><h2>Goal specific calculators</h2></div>
+</div>
+
+<div class="wrapper secondary-wrapper">
+  
+  <!-- Child Education Calculator -->
+  <div class="panel">
+    <h3>Child education planning</h3>
+    <div class="inputs-container">
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Child's current age</div>
+          <div class="slider-value"><span id="edu_agev"></span> yrs</div>
+          <input id="edu_age" class="edu-slider" type="range" min="0" max="18" value="7">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Age when needed</div>
+          <div class="slider-value"><span id="edu_targetv"></span> yrs</div>
+          <input id="edu_target" class="edu-slider" type="range" min="15" max="25" value="17">
+        </div>
+      </div>
+      <div class="slider-group">
+        <div class="slider-label">Current cost of education</div>
+        <div class="slider-value">₹<span id="edu_costv"></span></div>
+        <input id="edu_cost" class="edu-slider" type="range" min="100000" max="50000000" step="100000" value="10000000">
+      </div>
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Education inflation</div>
+          <div class="slider-value"><span id="edu_inflv"></span>%</div>
+          <input id="edu_infl" class="edu-slider" type="range" min="4" max="12" step="0.5" value="6">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Expected return</div>
+          <div class="slider-value"><span id="edu_retv"></span>%</div>
+          <input id="edu_ret" class="edu-slider" type="range" min="6" max="15" step="0.5" value="11">
+        </div>
+      </div>
+    </div>
+
+    <div class="secondary-outputs">
+      <div class="hero-card" style="margin: 0; padding: 32px;">
+        <div class="hero-title">Estimated cost at age <span id="edu_display_age"></span> <span id="edu_futureExact" class="exact-val"></span></div>
+        <div class="hero-value" id="edu_future_cost"></div>
+        <div class="stats-row two-col">
+          <div class="stat-box">
+            <div class="stat-label">Req. monthly SIP <span id="edu_sipExact" class="exact-val"></span></div>
+            <div class="stat-val purple-text" id="edu_sip"></div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">OR lumpsum today <span id="edu_lumpExact" class="exact-val"></span></div>
+            <div class="stat-val purple-text" id="edu_lumpsum"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container small-chart">
+        <canvas id="eduPie"></canvas>
+        <div class="chart-legend" style="position: absolute; bottom: -30px; left:0;">
+           <div class="legend-item"><div class="legend-color" style="background:var(--primary-purple)"></div> Invested</div>
+           <div class="legend-item"><div class="legend-color" style="background:var(--accent-green)"></div> Est. return</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-note">
+      Education costs rise faster than most other expenses. Planning early gives your investments more time to grow, reducing the amount you need to save each month.
+    </div>
+  </div>
+
+  <!-- Retirement Calculator -->
+  <div class="panel">
+    <h3>Retirement planning</h3>
+    <div class="inputs-container">
+      <div class="slider-group">
+        <div class="slider-label">Current annual expenses</div>
+        <div class="slider-value">₹<span id="ret_expv"></span></div>
+        <input id="ret_exp" class="ret-slider" type="range" min="100000" max="10000000" step="100000" value="1800000">
+      </div>
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Current age</div>
+          <div class="slider-value"><span id="ret_cur_agev"></span> yrs</div>
+          <input id="ret_cur_age" class="ret-slider" type="range" min="18" max="60" value="40">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Retirement age</div>
+          <div class="slider-value"><span id="ret_agev"></span> yrs</div>
+          <input id="ret_age" class="ret-slider" type="range" min="45" max="70" value="60">
+        </div>
+      </div>
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Life expectancy</div>
+          <div class="slider-value"><span id="ret_lifev"></span> yrs</div>
+          <input id="ret_life" class="ret-slider" type="range" min="70" max="100" value="85">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Inflation</div>
+          <div class="slider-value"><span id="ret_inflv"></span>%</div>
+          <input id="ret_infl" class="ret-slider" type="range" min="4" max="10" step="0.5" value="7">
+        </div>
+      </div>
+      <div class="row-sliders">
+        <div class="slider-group">
+          <div class="slider-label">Pre-retirement return</div>
+          <div class="slider-value"><span id="ret_pre_retv"></span>%</div>
+          <input id="ret_pre_ret" class="ret-slider" type="range" min="8" max="15" step="0.5" value="12">
+        </div>
+        <div class="slider-group">
+          <div class="slider-label">Post-retirement return</div>
+          <div class="slider-value"><span id="ret_post_retv"></span>%</div>
+          <input id="ret_post_ret" class="ret-slider" type="range" min="5" max="10" step="0.5" value="8">
+        </div>
+      </div>
+    </div>
+
+    <div class="secondary-outputs">
+      <div class="hero-card" style="margin: 0; padding: 32px;">
+        <div class="hero-title">Required retirement corpus <span id="ret_corpExact" class="exact-val"></span></div>
+        <div class="hero-value" id="ret_corpus"></div>
+        <div class="stats-row two-col">
+          <div class="stat-box">
+            <div class="stat-label">1st year exp. at <span id="ret_first_yr_age"></span> <span id="ret_expExact" class="exact-val"></span></div>
+            <div class="stat-val purple-text" id="ret_future_exp"></div>
+          </div>
+          <div class="stat-box">
+            <div class="stat-label">Req. monthly SIP <span id="ret_sipExact" class="exact-val"></span></div>
+            <div class="stat-val purple-text" id="ret_sip"></div>
+          </div>
+        </div>
+      </div>
+      <div class="chart-container small-chart">
+        <canvas id="retPie"></canvas>
+        <div class="chart-legend" style="position: absolute; bottom: -30px; left:0;">
+           <div class="legend-item"><div class="legend-color" style="background:var(--primary-purple)"></div> Invested</div>
+           <div class="legend-item"><div class="legend-color" style="background:var(--accent-green)"></div> Est. return</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="info-note">
+      Retirement planning is a two-stage problem: calculating the income needed at retirement, and calculating the corpus needed to generate that income until death.
+    </div>
+  </div>
+
+</div>
+
+<script>
+const fmtExact = n => new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(n);
+const fmtInput = n => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(n);
+const fmtCrLakh = val => {
+  if (val >= 10000000) { return '₹' + (val / 10000000).toFixed(1) + ' Cr'; } 
+  else if (val >= 100000) { return '₹' + (val / 100000).toFixed(1) + ' L'; } 
+  else { return '₹' + new Intl.NumberFormat('en-IN', { maximumFractionDigits: 0 }).format(val); }
+};
+
+const chart = new Chart(document.getElementById('pie'), {
+  type: 'doughnut',
+  data: {
+    labels: ['Future money', 'Dream money', 'Emergency money', 'Liquidity buffer'],
+    datasets: [{
+      data: [0, 0, 0, 0],
+      backgroundColor: ['#6c5ce7', '#D9A441', '#24B5AE', '#153B5B'], 
+      borderWidth: 4,           
+      borderColor: '#ffffff',
+      cutout: '55%'             
+    }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return c.label + ': ' + fmtExact(c.raw); } } } }
+  }
+});
+
+const chartConfig = {
+  type: 'doughnut',
+  data: {
+    labels: ['Total invested', 'Est. return'],
+    datasets: [{ data: [0, 0], backgroundColor: ['#43215D', '#24B5AE'], borderWidth: 3, borderColor: '#ffffff', cutout: '65%' }]
+  },
+  options: {
+    responsive: true, maintainAspectRatio: false,
+    plugins: { legend: { display: false }, tooltip: { callbacks: { label: function(c) { return c.label + ': ' + fmtExact(c.raw); } } } }
+  }
+};
+const eduChart = new Chart(document.getElementById('eduPie'), JSON.parse(JSON.stringify(chartConfig)));
+const retChart = new Chart(document.getElementById('retPie'), JSON.parse(JSON.stringify(chartConfig)));
+
+function compoundLumpsum(p, r, y) { return p * Math.pow(1 + r, y); }
+function compoundSIP(sipBase, stepRate, returnRate, years) {
+  let total = 0;
+  for (let y = 0; y < years; y++) {
+    let currentMonthlySIP = sipBase * Math.pow(1 + stepRate, y);
+    let monthsLeft = (years - y) * 12;
+    for (let m = 0; m < 12; m++) {
+      total += currentMonthlySIP * Math.pow(1 + returnRate, (monthsLeft - m) / 12);
+    }
+  }
+  return total;
+}
+
+function updateSliderFills() {
+  document.querySelectorAll('input[type=range]').forEach(input => {
+    const min = input.min || 0;
+    const max = input.max || 100;
+    const val = input.value;
+    const percentage = ((val - min) / (max - min)) * 100;
+    input.style.background = `linear-gradient(to right, var(--primary-purple) ${percentage}%, var(--grey-bg) ${percentage}%)`;
+  });
+}
+
+document.getElementById('exp').addEventListener('input', (e) => { document.getElementById('ret_exp').value = e.target.value * 12; });
+document.getElementById('age').addEventListener('input', (e) => { document.getElementById('ret_cur_age').value = e.target.value; });
+document.getElementById('ret').addEventListener('input', (e) => { document.getElementById('ret_age').value = e.target.value; });
+document.getElementById('infl').addEventListener('input', (e) => { 
+  document.getElementById('edu_infl').value = e.target.value;
+  document.getElementById('ret_infl').value = e.target.value;
+});
+
+function updateMain() {
+  let currentAge = +document.getElementById('age').value;
+  let planAge = +document.getElementById('ret').value;
+  let years = Math.max(1, planAge - currentAge);
+
+  document.getElementById('yearsTxt').innerText = years;
+  document.getElementById('retAgeTxt').innerText = planAge;
+  
+  ['exp', 'age', 'ret', 'lump', 'sip', 'step', 'infl'].forEach(id => {
+    document.getElementById(id + 'v').innerText = fmtInput(+document.getElementById(id).value);
+  });
+  document.getElementById('inflTxt').innerText = document.getElementById('infl').value;
+
+  let monthlyExp = +document.getElementById('exp').value;
+  let lumpVal = +document.getElementById('lump').value;
+  let sipVal = +document.getElementById('sip').value;
+  let stepRate = +document.getElementById('step').value / 100;
+  let inflRate = +document.getElementById('infl').value / 100;
+
+  let emgTarget = monthlyExp * 6;
+  let liqMonths = years > 7 ? 36 : 50;
+  let liqTarget = monthlyExp * liqMonths;
+
+  let lumpEmg = Math.min(lumpVal, emgTarget);
+  let lumpRem = lumpVal - lumpEmg;
+  let lumpLiq = Math.min(lumpRem, liqTarget);
+  let lumpFutRem = lumpRem - lumpLiq;
+
+  let sipEmg = sipVal * 0.10;
+  let sipLiq = sipVal * 0.30;
+  let sipFutBase = sipVal * 0.60;
+  let lumpFut = lumpFutRem * 0.90;
+  let lumpDrm = lumpFutRem * 0.10;
+  let sipFut = sipFutBase * 0.90;
+  let sipDrm = sipFutBase * 0.10;
+
+  let fvEmg = compoundLumpsum(lumpEmg, 0.055, years) + compoundSIP(sipEmg, stepRate, 0.055, years);
+  let fvLiq = compoundLumpsum(lumpLiq, 0.07, years)  + compoundSIP(sipLiq, stepRate, 0.07, years);
+  let fvFut = compoundLumpsum(lumpFut, 0.12, years)  + compoundSIP(sipFut, stepRate, 0.12, years);
+  let fvDrm = compoundLumpsum(lumpDrm, 0.09, years)  + compoundSIP(sipDrm, stepRate, 0.09, years);
+
+  let totalNominalWealth = fvEmg + fvLiq + fvFut + fvDrm;
+  let realWealth = totalNominalWealth / Math.pow(1 + inflRate, years);
+
+  let totalInvested = lumpVal;
+  for (let i = 0; i < years; i++) { totalInvested += (sipVal * 12) * Math.pow(1 + stepRate, i); }
+  
+  let totalGains = totalNominalWealth - totalInvested;
+  let compoundingPower = totalInvested > 0 ? (totalGains / totalInvested * 100) : 0;
+
+  document.getElementById('totalInvestedTxt').innerText = fmtCrLakh(totalInvested);
+  document.getElementById('investExact').innerText = `(${fmtExact(totalInvested)})`;
+  
+  document.getElementById('realWealth').innerText = fmtCrLakh(realWealth);
+  document.getElementById('realWealthExact').innerText = `(${fmtExact(realWealth)})`;
+  
+  document.getElementById('nominalWealth').innerText = fmtCrLakh(totalNominalWealth);
+  document.getElementById('nomWealthExact').innerText = `(${fmtExact(totalNominalWealth)})`;
+  
+  document.getElementById('chartTitleVal').innerText = fmtCrLakh(totalNominalWealth);
+  document.getElementById('chartNomExact').innerText = `(${fmtExact(totalNominalWealth)})`;
+  
+  document.getElementById('totalReturn').innerText = fmtCrLakh(totalGains);
+  document.getElementById('totalReturnExact').innerText = `(${fmtExact(totalGains)})`;
+  
+  document.getElementById('compoundRate').innerText = compoundingPower.toFixed(1) + '%';
+
+  document.getElementById('emgAmt').innerText = fmtCrLakh(fvEmg);
+  document.getElementById('emgExact').innerText = `(${fmtExact(fvEmg)})`;
+  
+  document.getElementById('liqAmt').innerText = fmtCrLakh(fvLiq);
+  document.getElementById('liqExact').innerText = `(${fmtExact(fvLiq)})`;
+  
+  document.getElementById('futAmt').innerText = fmtCrLakh(fvFut);
+  document.getElementById('futExact').innerText = `(${fmtExact(fvFut)})`;
+  
+  document.getElementById('drmAmt').innerText = fmtCrLakh(fvDrm);
+  document.getElementById('drmExact').innerText = `(${fmtExact(fvDrm)})`;
+
+  chart.data.datasets[0].data = [ Math.round(fvFut), Math.round(fvDrm), Math.round(fvEmg), Math.round(fvLiq) ];
+  chart.update();
+}
+
+function updateEdu() {
+  ['edu_age', 'edu_target', 'edu_cost', 'edu_infl', 'edu_ret'].forEach(id => {
+    document.getElementById(id + 'v').innerText = fmtInput(+document.getElementById(id).value);
+  });
+
+  let curAge = +document.getElementById('edu_age').value;
+  let tgtAge = +document.getElementById('edu_target').value;
+  let cost = +document.getElementById('edu_cost').value;
+  let infl = +document.getElementById('edu_infl').value / 100;
+  let ret = +document.getElementById('edu_ret').value / 100;
+
+  let years = Math.max(1, tgtAge - curAge);
+  document.getElementById('edu_display_age').innerText = tgtAge;
+
+  let futureCost = cost * Math.pow(1 + infl, years);
+  let lumpsumReq = futureCost / Math.pow(1 + ret, years);
+  
+  let rMonthly = ret / 12;
+  let nMonths = years * 12;
+  let sipReq = (futureCost * rMonthly) / (Math.pow(1 + rMonthly, nMonths) - 1);
+  
+  let totalInvested = sipReq * nMonths;
+  let estReturns = futureCost - totalInvested;
+
+  document.getElementById('edu_future_cost').innerText = fmtCrLakh(futureCost);
+  document.getElementById('edu_futureExact').innerText = `(${fmtExact(futureCost)})`;
+  
+  document.getElementById('edu_sip').innerText = fmtCrLakh(sipReq) + '/mo';
+  document.getElementById('edu_sipExact').innerText = `(${fmtExact(sipReq)})`;
+  
+  document.getElementById('edu_lumpsum').innerText = fmtCrLakh(lumpsumReq);
+  document.getElementById('edu_lumpExact').innerText = `(${fmtExact(lumpsumReq)})`;
+  
+  eduChart.data.datasets[0].data = [totalInvested, estReturns];
+  eduChart.update();
+}
+
+function updateRet() {
+  ['ret_exp', 'ret_cur_age', 'ret_age', 'ret_life', 'ret_infl', 'ret_pre_ret', 'ret_post_ret'].forEach(id => {
+    document.getElementById(id + 'v').innerText = fmtInput(+document.getElementById(id).value);
+  });
+
+  let curExp = +document.getElementById('ret_exp').value;
+  let curAge = +document.getElementById('ret_cur_age').value;
+  let retAge = +document.getElementById('ret_age').value;
+  let lifeExp = +document.getElementById('ret_life').value;
+  let infl = +document.getElementById('ret_infl').value / 100;
+  let preRet = +document.getElementById('ret_pre_ret').value / 100;
+  let postRet = +document.getElementById('ret_post_ret').value / 100;
+
+  let yearsToRet = Math.max(1, retAge - curAge);
+  let retDuration = Math.max(1, lifeExp - retAge);
+  document.getElementById('ret_first_yr_age').innerText = retAge;
+
+  let futureExp = curExp * Math.pow(1 + infl, yearsToRet);
+  let corpus = 0;
+  if (postRet === infl) {
+    corpus = futureExp * retDuration;
+  } else {
+    corpus = futureExp * (1 - Math.pow((1 + infl) / (1 + postRet), retDuration)) / (postRet - infl);
+  }
+
+  let preRMonthly = preRet / 12;
+  let nMonths = yearsToRet * 12;
+  let sipReq = (corpus * preRMonthly) / (Math.pow(1 + preRMonthly, nMonths) - 1);
+  
+  let totalInvested = sipReq * nMonths;
+  let estReturns = corpus - totalInvested;
+
+  document.getElementById('ret_corpus').innerText = fmtCrLakh(corpus);
+  document.getElementById('ret_corpExact').innerText = `(${fmtExact(corpus)})`;
+
+  document.getElementById('ret_future_exp').innerText = fmtCrLakh(futureExp) + '/yr';
+  document.getElementById('ret_expExact').innerText = `(${fmtExact(futureExp)})`;
+  
+  document.getElementById('ret_sip').innerText = fmtCrLakh(sipReq) + '/mo';
+  document.getElementById('ret_sipExact').innerText = `(${fmtExact(sipReq)})`;
+  
+  retChart.data.datasets[0].data = [totalInvested, estReturns];
+  retChart.update();
+}
+
+function runAllUpdates() {
+  updateMain();
+  updateEdu();
+  updateRet();
+  updateSliderFills();
+}
+
+document.querySelectorAll('input[type=range]').forEach(input => input.addEventListener('input', runAllUpdates));
+runAllUpdates();
+</script>
+</body>
+</html>
